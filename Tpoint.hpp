@@ -2,6 +2,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <cmath>
 
 class Tpoint {
 public:
@@ -9,31 +10,50 @@ public:
     using Vec2f = sf::Vector2f;
     using Vec2u = sf::Vector2u;
     using Window = sf::RenderWindow;
+    using Time = sf::Time;
+    using Clock = sf::Clock;
+    using Rectangle = sf::RectangleShape;
+    using Circle = sf::CircleShape;
     Tpoint() = delete;
-    struct MoveSettings;
+
+    enum MoveType {
+        Straight,
+        Arbitrarily
+    };
+
+    struct MoveSettings {
+        MoveType moveType = Straight;
+        float speed = 1.f; // relative to default
+        unsigned scale = 0; // degrees
+        unsigned sleepTime = 1000000; // how long it doesn't update
+    };
 
 private:
     Vec2f pos{0.f, 0.f};
     sf::RenderWindow* window = nullptr;
     Color color{255, 255, 255};
-    void move(MoveSettings* settings);
+    MoveSettings moveSettings;
+    Clock idleTime;
+    // bool rerender(); deprecated
+    void updatePosition();
+    void setScale(unsigned scale); // in degrees
+    Time getIdleTime();
+    void reflectHorisontal();
+    void reflectVertical();
+    void reflect();
+    bool setPos(Vec2f pos);
 
 public:
+    Vec2f getPosition();
+    Vec2f getPos(); // alias
     Color getRandomColor();
-    Vec2f getPos();
     bool isOver();
-    bool setPos(Vec2f pos);
-    void connect(Window* window);
-    void disconnect();
-    void moveStraight();
-    void moveArbitrarily();
+    void connect(Window*); // connect to window
+    void disconnect(); // disconnect from window
+    void moveStraight(); // change move type
+    void moveArbitrarily(); // change move type
+    bool update();
+    void setSettings(MoveSettings);
     Tpoint(Vec2f pos);
-    Tpoint(Vec2f pos, Window* window);
-};
-
-struct Tpoint::MoveSettings {
-    enum Mode { 
-        Straight,
-        Arbitrarily
-    };
+    Tpoint(Vec2f pos, Window*);
 };
