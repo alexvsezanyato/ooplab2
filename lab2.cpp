@@ -5,6 +5,7 @@
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/WindowStyle.hpp>
 #include "Tpoint.hpp"
 
 short getRandom(short from, short to) {
@@ -33,6 +34,11 @@ public:
         // Hours
     };
 
+    enum WindowStyle {
+        Windowed,
+        Fullscreen,
+    };
+
     struct Waiting {
         unsigned count = 0;
         TimeFormat format = Milliseconds;
@@ -46,7 +52,8 @@ private:
     std::string title = "Point mover!";
     Tpoint::MoveType moveType = Tpoint::Straight;
     Tpoint::Clock clock;
-    Waiting waitingTime{10, Milliseconds}; // don't render for
+    Waiting waitingTime{5, Milliseconds}; // don't render for
+    std::string appName = "Point mover";
 
     void handleEvent(SfmlEvent e) {
         switch (e.type) {
@@ -58,9 +65,10 @@ private:
     }
 
     void drawPoint(Tpoint* point) {
+        Tpoint::Circle circle(1.f, 4);
         Tpoint::Vec2f pos = point->getPosition();
-        Tpoint::Circle circle(5.f, 30);
         circle.setPosition(pos);
+        circle.setFillColor(point->getColor());
         window->draw(circle);
         return;
     }
@@ -86,7 +94,7 @@ private:
 
     void run() {
         sf::VideoMode videoMode(windowSize.x, windowSize.y);
-        window->create(videoMode, title);
+        window->create(videoMode, title, sf::Style::Close);
         short n = pointCount;
         Window* w = this->window;
 
@@ -94,8 +102,12 @@ private:
             Tpoint::MoveSettings moveSettings;
             moveSettings.moveType = moveType;
             moveSettings.speed = 1.f;
-            moveSettings.scale = 30; // getRandom(0, 180);
+            moveSettings.scale = getRandom(-179, 179);
             points[i]->setSettings(moveSettings);
+            short a = Tpoint::getRandom(150, 255);
+            short b = Tpoint::getRandom(150, 255);
+            short c = Tpoint::getRandom(150, 255);
+            points[i]->setColor(Tpoint::Color(a, b, c));
         }
         while (w->isOpen()) {
             // check sfml events
@@ -134,6 +146,11 @@ public:
         return;
     }
 
+    std::string getName() {
+        // ..
+        return this->appName;
+    }
+
     void printMenu() {
         std::cout << "1. Прямолинейное движение с отражением от стенок экрана" << std::endl;
         std::cout << "2. Случайное движение с отражением" << std::endl;
@@ -152,20 +169,19 @@ public:
     }
 
     PointMover(Window* window, Tpoint** points, short* pointCount) {
-      this->window = window;
-      setPoints(points, *pointCount);
-      return;
+        this->window = window;
+        setPoints(points, *pointCount);
+        return;
     }
 };
 
 int main() {
-    short count = 5;
+    short count = 1000;
     Tpoint** points = new Tpoint*[count];
 
-    Tpoint::Vec2u size = {500, 600};
+    Tpoint::Vec2u size = {800, 600};
     // sf::VideoMode videoMode = new sf::VideoMode::getDesktopMode();
     Tpoint::Window window;
-    window.clear(Tpoint::Color::Red);
 
     for (short i = 0; i < count; i++) {
         Tpoint::Vec2f position;

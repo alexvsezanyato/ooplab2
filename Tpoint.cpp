@@ -28,37 +28,55 @@ void Tpoint::disconnect() {
     return;
 }
 
-void Tpoint::reflectHorisontal() {
-    unsigned a = moveSettings.scale;
-    unsigned b = (unsigned) ((abs(a) + 90) % 180);
-    if (a < 0) b = -b;
-    setScale(b);
-    return;
-}
+void Tpoint::reflect(Tpoint::WindowSide windowSide) {
+    short a = moveSettings.scale;
+    short b;
 
-void Tpoint::reflectVertical() {
-    unsigned a = moveSettings.scale;
-    unsigned b = (unsigned) ((a + 90) % 180);
+    switch (windowSide) {
+        case Tpoint::Top: {
+            b = -a;
+            //std::cout << "Reflection::topSide (";
+            //std::cout << "a = " << a << "; b = " << b;
+            //std::cout << std::endl;
+            break;
+        }
+        case Tpoint::Bottom: {
+            b = -a;
+            //std::cout << "Reflection::BottomSide (";
+            //std::cout << "a = " << a << "; b = " << b;
+            //std::cout << std::endl;
+            break;
+        }
+        case Tpoint::Left: {
+            if (a) b = a / abs(a) * 180 - a;
+            else b = 180 - a;
+            //std::cout << "Reflection::LeftSide (";
+            //std::cout << "a = " << a << "; b = " << b;
+            //std::cout << std::endl;
+            break;
+        }
+        case Tpoint::Right: {
+            if (a) b = a / abs(a) * 180 - a;
+            else b = 180 - a;
+            //std::cout << "Reflection::RightSide (";
+            //std::cout << "a = " << a << "; b = " << b;
+            //std::cout << std::endl;
+            break;
+        }
+    }
     setScale(b);
     return;
 }
 
 void Tpoint::reflect() {
-    bool horisontal = false;
-    bool virtical = false;
     Tpoint::Vec2u windowSize = window->getSize();
-    float wx = (float) windowSize.x;
-    float wy = (float) windowSize.y;
-    float px = pos.x;
-    float py = pos.y;
-    float rx = wx - px;
-    float ry = wy - py;
-    if (rx < 0 || rx > wx) virtical = true;
-    if (ry < 0 || ry > wy) horisontal = true;
+    float ww = (float) windowSize.x;
+    float wh = (float) windowSize.y;
 
-    if (virtical) reflectVertical();
-    if (horisontal) reflectHorisontal();
-    return;
+    if (pos.x < 0) reflect(Tpoint::Left);
+    if (pos.x > ww) reflect(Tpoint::Right);
+    if (pos.y < 0) reflect(Tpoint::Top);
+    if (pos.y > wh) reflect(Tpoint::Bottom);
 }
 
 bool Tpoint::update() {
@@ -68,17 +86,56 @@ bool Tpoint::update() {
     return true;
 }
 
+short Tpoint::getRandom(short from, short to) {
+    short number;
+    number = std::rand() % (to - from) + from;
+    return number;
+}
+
 void Tpoint::updatePosition() {
     auto speed = moveSettings.speed;
     auto scale = moveSettings.scale;
-    pos.x += speed * cos(scale);
-    pos.y += speed * sin(scale);
+
+    switch (moveSettings.moveType) {
+    case Tpoint::Arbitrarily:
+        scale += Tpoint::getRandom(-6, 8);
+        if (scale >= 180) scale = 179;
+        if (scale <= -180) scale = -179;
+        moveSettings.scale = scale;
+        break;
+    case Tpoint::Straight:
+        // .. do something
+        break;
+    }
+    pos.x += speed * cos(scale * 3.14 / 180);
+    pos.y += speed * sin(scale * 3.14 / 180);
 
     if (isOver()) {
         reflect();
-        pos.x += speed * cos(scale);
-        pos.y += speed * sin(scale);
+        scale = moveSettings.scale;
+        pos.x += speed * cos(scale * 3.14 / 180);
+        pos.y += speed * sin(scale * 3.14 / 180);
+
+        // report
+        Tpoint::Vec2u win = window->getSize();
+        float ww = (float) win.x;
+        float wh = (float) win.y;
+
+        // std::cout << "pos.x = " << pos.x << "; pos.y = " << pos.y << std::endl;
+        // std::cout << "win.x = " << ww << "; win.y = " << wh << std::endl;
+        // std::cout << "scale = " << scale;
+        // std::cout << std::endl << std::endl;
     }
+}
+
+void Tpoint::setColor(Tpoint::Color color) {
+    this->color = color;
+    return;
+}
+
+Tpoint::Color Tpoint::getColor() {
+    // ...
+    return color;
 }
 
 Tpoint::Vec2f Tpoint::getPosition() {
@@ -97,7 +154,7 @@ Tpoint::Tpoint(Tpoint::Vec2f pos, Tpoint::Window* window) {
     return;
 }
 
-void Tpoint::setScale(unsigned scale) {
+void Tpoint::setScale(short scale) {
     moveSettings.scale = scale;
     return;
 }

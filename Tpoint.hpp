@@ -21,10 +21,17 @@ public:
         Arbitrarily
     };
 
+    enum WindowSide {
+        Top,
+        Bottom,
+        Left,
+        Right
+    };
+
     struct MoveSettings {
         MoveType moveType = Straight;
         float speed = 1.f; // relative to default
-        unsigned scale = 0; // degrees
+        short scale = 0; // degrees
         unsigned sleepTime = 1000000; // how long it doesn't update
     };
 
@@ -36,7 +43,7 @@ private:
     Clock idleTime;
     // bool rerender(); deprecated
     void updatePosition();
-    void setScale(unsigned scale); // in degrees
+    void setScale(short scale); // in degrees
     Time getIdleTime();
     void reflectHorisontal();
     void reflectVertical();
@@ -44,9 +51,12 @@ private:
     bool setPos(Vec2f pos);
 
 public:
+    static short getRandom(short from, short to);
     Vec2f getPosition();
     Vec2f getPos(); // alias
     Color getRandomColor();
+    void setColor(Color);
+    Color getColor();
     bool isOver();
     void connect(Window*); // connect to window
     void disconnect(); // disconnect from window
@@ -56,4 +66,5 @@ public:
     void setSettings(MoveSettings);
     Tpoint(Vec2f pos);
     Tpoint(Vec2f pos, Window*);
+    void reflect(WindowSide);
 };
